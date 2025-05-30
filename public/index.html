@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>随机点名系统</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            margin: 20px;
+        }
+
+        #nameDisplay {
+            width: 200px;
+            height: 60px;
+            line-height: 60px;
+            margin: 20px auto;
+            font-size: 24px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+        }
+
+        #resultBox {
+            width: 300px;
+            min-height: 100px;
+            margin: 20px;
+            padding: 15px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #startBtn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #startBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #stopBtn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            background-color: #bb2d3b;
+        }
+
+        #resetBtn {
+            background-color: #ffc107;
+        }
+
+        #exportBtn {
+            background-color: #20c997;
+            color: white;
+        }
+
+        #importBtn {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        .highlight {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 300px;
+            height: 100px;
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>🎓 增强版随机点名系统</h2>
+    <div class="container">
+        <div id="nameDisplay">准备就绪</div>
+        <button id="startBtn">开始点名</button>
+        <button id="stopBtn" disabled>结束点名</button>
+        <button id="resetBtn">重置点名</button>
+        <button id="exportBtn">导出结果</button>
+        <div id="resultBox">
+            选中学生：<span id="selectedName">等待点名...</span>
+            <div id="recordBox" style="margin-top:10px;"></div>
+        </div>
+
+        <textarea id="nameInput" placeholder="请输入学生名单，每行一个名字"></textarea><br>
+        <button id="importBtn">导入自定义名单</button>
+    </div>
+
+    <script>
+        let students = [
+            "张三", "李四", "王五", "赵六",
+            "陈七", "林八", "吴九", "郑十",
+            "周十一", "徐十二", "孙十三", "马十四"
+        ];
+
+        let calledStudents = [];
+        let currentStudent = "";
+        let intervalId = null;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+
+        const nameDisplay = document.getElementById('nameDisplay');
+        const selectedName = document.getElementById('selectedName');
+        const recordBox = document.getElementById('recordBox');
+
+        function randomSelect() {
+            const available = students.filter(name => !calledStudents.includes(name));
+            if (available.length === 0) return null;
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function speakName(name) {
+            const msg = new SpeechSynthesisUtterance(name);
+            msg.lang = 'zh-CN';
+            window.speechSynthesis.speak(msg);
+        }
+
+        function updateRecord() {
+            recordBox.innerHTML = "✅ 已点到：<br>" + calledStudents.join("，");
+        }
+
+        startBtn.onclick = () => {
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            nameDisplay.style.color = "#333";
+            intervalId = setInterval(() => {
+                currentStudent = randomSelect();
+                if (currentStudent) {
+                    nameDisplay.textContent = currentStudent;
+                } else {
+                    clearInterval(intervalId);
+                    nameDisplay.textContent = "全部点完啦！";
+                    stopBtn.disabled = true;
+                }
+            }, 100);
+        };
+
+        stopBtn.onclick = () => {
+            clearInterval(intervalId);
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+
+            if (currentStudent && !calledStudents.includes(currentStudent)) {
+                calledStudents.push(currentStudent);
+                selectedName.textContent = currentStudent;
+                selectedName.className = "highlight";
+                nameDisplay.textContent = "已完成点名 ▶";
+                nameDisplay.style.color = "#28a745";
+                speakName(currentStudent);
+                updateRecord();
+            }
+        };
+
+        resetBtn.onclick = () => {
+            calledStudents = [];
+            selectedName.textContent = "等待点名...";
+            selectedName.className = "";
+            recordBox.innerHTML = "";
+            nameDisplay.textContent = "准备就绪";
+            nameDisplay.style.color = "#000";
+            clearInterval(intervalId);
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        };
+
+        exportBtn.onclick = () => {
+            const blob = new Blob([calledStudents.join('\n')], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '点名结果.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        importBtn.onclick = () => {
+            const text = document.getElementById("nameInput").value.trim();
+            if (text) {
+                students = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
+                calledStudents = [];
+                updateRecord();
+                alert("名单导入成功，共 " + students.length + " 人！");
+            }
+        };
+    </script>
+</body>
+</html>
