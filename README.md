@@ -66,37 +66,23 @@ live-server index.html
 
 若你使用的是 Cursor 编辑器开发环境，并希望一键部署你的点名系统页面，可配置 MCP Server，具体如下：
 
-#### 步骤一：安装 MCP CLI 工具
-```bash
-npm install -g @cursor/mcp
-```
-
-#### 步骤二：创建配置文件 `mcp.config.json`
-```json
-{
-  "name": "rollcall-ui",
-  "type": "static",
-  "entry": "/index.html",
-  "staticDir": "./"
-}
-```
-
-#### 步骤三：运行 MCP 本地服务
-```bash
-mcp-dev start
-```
-
-#### 步骤四：在 Cursor 中添加 MCP Server：
+#### 在 Cursor 中添加 MCP Server：
 
 - 打开 `Settings > MCP Servers > +Add`
 - 配置如下：
-  - **Name**: RollCallMCP
-  - **URL**: http://localhost:4000
-  - **Insecure Skip TLS Verify**: ✅（本地勾选）
-  - **Set as default**: ✅
-  - **API Key**: （可留空）
+  {
+    "mcpServers": {
+        "edgeone-pages-mcp-server": {
+          "command": "cmd",
+          "args": [
+            "/c",
+            "npx",
+          "edgeone-pages-mcp"
+      ]
+    }
+  }
+}
 
-点击 `Add`，然后就可以在 Cursor 里点击 `Deploy`，一键部署你的页面。
 
 ## 🔭 五、项目优化与未来扩展建议
 

@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+    "edgeone-pages-mcp-server": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "edgeone-pages-mcp"
+      ]
+    }
+    }
+}
